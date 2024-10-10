@@ -1,0 +1,21 @@
+{
+  "name": "the-bugs-contracts",
+  "version": "0.0.1",
+  "description": "Smart contracts for The Bugs game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ndbaturin",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.2.1",
+    "dotenv": "^16.0.3",
+    "hardhat": "^2.12.1",
+    "i": "^0.3.7",
+    "npm": "^10.8.1"
+  }
+}
