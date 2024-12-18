@@ -52,7 +52,7 @@ contract BugMinter is
         emit CatchInitiated(catcher, randomSeedBlock);
     }
 
-    function completeCatch() external {
+    function completeCatch(string calldata name) external {
         address catcher = _msgSender();
         bytes32 randomSeed = blockhash(randomSeedBlocks[catcher]);
 
@@ -60,7 +60,7 @@ contract BugMinter is
         lastCatch[catcher] = block.timestamp;
 
         uint tokenId = uint(keccak256(abi.encodePacked(randomSeed, catcher, address(this), address(theBugs))));
-        theBugs.safeMint(catcher, tokenId);
+        theBugs.mint(catcher, tokenId, name);
     }
 
     function _authorizeUpgrade(address newImplementation)

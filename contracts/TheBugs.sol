@@ -19,10 +19,27 @@ contract TheBugs is
 {
     using Strings for uint256;
 
+    enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
+
+    struct Attributes {
+        uint8 intelligence;
+        uint8 nimbleness;
+        uint8 strength;
+        uint8 endurance;
+        uint8 charisma;
+        uint8 talent;
+    }
+
     struct SpeciesData {
         string name;
         string description;
         string image;
+        Attributes baseAttributes;
+    }
+
+    struct BugData {
+        string name;
+        Attributes attributes;
     }
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -30,8 +47,12 @@ contract TheBugs is
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint public constant SPECIES_COUNT = 12;
+    uint private constant ATTRIBUTES_COUNT = 6;
 
-    mapping(uint => SpeciesData) public _speciesDatas;
+    mapping(uint => SpeciesData) public speciesDatas;
+    mapping(uint => BugData) public bugDatas;
+
+    uint private constant PRECISION = 10000;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -47,7 +68,8 @@ contract TheBugs is
         _grantRole(DATA_SETTER_ROLE, msg.sender);
     }
 
-    function safeMint(address to, uint tokenId) external onlyRole(MINTER_ROLE) {
+    function mint(address to, uint tokenId, string calldata name) external onlyRole(MINTER_ROLE) {
+        _initBugData(tokenId, name);
         _safeMint(to, tokenId);
     }
 
@@ -57,34 +79,136 @@ contract TheBugs is
     ) external onlyRole(DATA_SETTER_ROLE) {
         require(speciesID < SPECIES_COUNT, "TheBugs: invalid spesies ID");
 
-        _speciesDatas[speciesID] = speciesData;
+        speciesDatas[speciesID] = speciesData;
     }
 	
 	function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        SpeciesData memory speciesData = getSpeciesData(tokenId);
+        SpeciesData memory species = getSpeciesData(tokenId);
+        BugData memory bug = bugDatas[tokenId];
+
+        string memory name;
+        string memory description;
+        string memory rarity = rarityToString(calculateRarity(tokenId));
+        if (bytes(bug.name).length == 0) {
+            name = string.concat(rarity, " ", species.name);
+            description = species.description;
+        } else {
+            name = bug.name;
+            description = string.concat(species.name, ": ", species.description);
+        }
         bytes memory dataURI = abi.encodePacked(
             '{',
-                '"name": "Bug #', tokenId.toString(), '",',
-                '"species": "', speciesData.name, '",',
-                '"description": "', speciesData.description, '",',
-                '"image": "', speciesData.image, '"',
+                '"name": "', name, '",',
+                '"species": "', species.name, '",',
+                '"description": "', description, '",',
+                '"image": "', species.image, '"',
+                '"attributes": [',
+                    '{',
+                        '"trait_type": "Rarity",', 
+                        '"value":', rarity,
+                    '},',
+                    '{',
+                        '"trait_type": "Intelligence",', 
+                        '"value":', bug.attributes.intelligence,
+                    '},',
+                    '{',
+                        '"trait_type": "Nimbleness",', 
+                        '"value":', bug.attributes.nimbleness,
+                    '},',
+                    '{',
+                        '"trait_type": "Strength",', 
+                        '"value":', bug.attributes.strength,
+                    '},',
+                    '{',
+                        '"trait_type": "Endurance",', 
+                        '"value":', bug.attributes.endurance,
+                    '},',
+                    '{',
+                        '"trait_type": "Charisma",', 
+                        '"value":', bug.attributes.charisma,
+                    '},',
+                    '{',
+                        '"trait_type": "Talent",', 
+                        '"value":', bug.attributes.talent,
+                    '},',
+                ']'
             '}'
         );
 
-        return string(
-            abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(dataURI)
-            )
+        return string.concat(
+            "data:application/json;base64,",
+            Base64.encode(dataURI)
         );
     }
 
     function getSpeciesData(uint tokenId) public view returns (SpeciesData memory) {
-        return _speciesDatas[getSpeciesId(tokenId)];
+        return speciesDatas[_getSpeciesId(tokenId)];
     }
 
-    function getSpeciesId(uint tokenId) public pure returns (uint) {
-        return tokenId % SPECIES_COUNT;
+    function calculateAttributes(uint tokenId) public view returns(Attributes memory) {
+        Rarity rarity = calculateRarity(tokenId);
+        
+        uint additionalPoints;
+        if (rarity == Rarity.COMMON) {
+            additionalPoints = 5;
+        } else if (rarity == Rarity.UNCOMMON) {
+            additionalPoints = 8;
+        } else if (rarity == Rarity.RARE) {
+            additionalPoints = 11;
+        } else if (rarity == Rarity.EPIC) {
+            additionalPoints = 14;
+        } else if (rarity == Rarity.LEGENDARY) {
+            additionalPoints = 17;
+        }
+
+        bytes32 random = keccak256(abi.encodePacked(tokenId, "ATTRIBUTES"));
+        uint8[] memory attributesIncrease = new uint8[](ATTRIBUTES_COUNT);
+        for (uint i = 0; i < additionalPoints; i++) {
+            uint attribute = uint(random) % ATTRIBUTES_COUNT;
+            attributesIncrease[attribute]++;
+            random = keccak256(abi.encodePacked(random));
+        }
+
+        Attributes memory baseAttributes = speciesDatas[_getSpeciesId(tokenId)].baseAttributes;
+        return Attributes(
+            baseAttributes.intelligence + attributesIncrease[0],
+            baseAttributes.nimbleness + attributesIncrease[1],
+            baseAttributes.strength + attributesIncrease[2],
+            baseAttributes.endurance + attributesIncrease[3],
+            baseAttributes.charisma + attributesIncrease[4],
+            baseAttributes.talent + attributesIncrease[5]
+        );
+    }
+
+    function calculateRarity(uint tokenId) public pure returns (Rarity) {
+        uint rarityPercentage = uint(keccak256(abi.encodePacked(tokenId, "RARITY"))) % PRECISION;
+
+        if (rarityPercentage < 6000) return Rarity.COMMON;
+        if (rarityPercentage < 8500) return Rarity.UNCOMMON;
+        if (rarityPercentage < 9500) return Rarity.RARE;
+        if (rarityPercentage < 9850) return Rarity.EPIC;
+        return Rarity.LEGENDARY;
+    }
+
+    function rarityToString(Rarity rarity) public pure returns (string memory) {
+        if (rarity == Rarity.COMMON) return "Common";
+        if (rarity == Rarity.UNCOMMON) return "Uncommon";
+        if (rarity == Rarity.RARE) return "Rare";
+        if (rarity == Rarity.EPIC) return "Epic";
+        if (rarity == Rarity.LEGENDARY) return "Legendary";
+        revert("TheBugs: invalid rarity");
+    }
+
+    function _initBugData(uint tokenId, string memory name) private {
+        Attributes memory attributes = calculateAttributes(tokenId);
+        bugDatas[tokenId] = BugData(
+            name,
+            attributes
+        );
+    }
+
+    function _getSpeciesId(uint tokenId) public pure returns (uint) {
+        return uint(keccak256(abi.encodePacked(tokenId, "SPECIES"))) % SPECIES_COUNT;
     }
 
     function _authorizeUpgrade(address newImplementation)
