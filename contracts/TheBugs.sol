@@ -17,7 +17,7 @@ contract TheBugs is
     ERC721EnumerableUpgradeable,
     UUPSUpgradeable
 {
-    using Strings for uint256;
+    using Strings for uint;
 
     enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 
@@ -84,7 +84,7 @@ contract TheBugs is
 	
 	function tokenURI(uint256 tokenId) public view override returns (string memory) {
         SpeciesData memory species = getSpeciesData(tokenId);
-        BugData memory bug = bugDatas[tokenId];
+        BugData storage bug = bugDatas[tokenId];
 
         string memory name;
         string memory description;
@@ -96,48 +96,19 @@ contract TheBugs is
             name = bug.name;
             description = string.concat(species.name, ": ", species.description);
         }
-        bytes memory dataURI = abi.encodePacked(
+        string memory metadataJson = string.concat(
             '{',
                 '"name": "', name, '",',
                 '"species": "', species.name, '",',
                 '"description": "', description, '",',
-                '"image": "', species.image, '"',
-                '"attributes": [',
-                    '{',
-                        '"trait_type": "Rarity",', 
-                        '"value":', rarity,
-                    '},',
-                    '{',
-                        '"trait_type": "Intelligence",', 
-                        '"value":', bug.attributes.intelligence,
-                    '},',
-                    '{',
-                        '"trait_type": "Nimbleness",', 
-                        '"value":', bug.attributes.nimbleness,
-                    '},',
-                    '{',
-                        '"trait_type": "Strength",', 
-                        '"value":', bug.attributes.strength,
-                    '},',
-                    '{',
-                        '"trait_type": "Endurance",', 
-                        '"value":', bug.attributes.endurance,
-                    '},',
-                    '{',
-                        '"trait_type": "Charisma",', 
-                        '"value":', bug.attributes.charisma,
-                    '},',
-                    '{',
-                        '"trait_type": "Talent",', 
-                        '"value":', bug.attributes.talent,
-                    '},',
-                ']'
+                '"image": "', species.image, '",',
+                '"attributes":', _makeBugAttributesJson(bug, rarity),
             '}'
         );
 
         return string.concat(
             "data:application/json;base64,",
-            Base64.encode(dataURI)
+            Base64.encode(bytes(metadataJson))
         );
     }
 
@@ -207,8 +178,40 @@ contract TheBugs is
         );
     }
 
-    function _getSpeciesId(uint tokenId) public pure returns (uint) {
+    function _getSpeciesId(uint tokenId) private pure returns (uint) {
         return uint(keccak256(abi.encodePacked(tokenId, "SPECIES"))) % SPECIES_COUNT;
+    }
+
+    function _makeStringAttributeJson(string memory name, string memory value) private pure returns (string memory) {
+        return string.concat(
+            '{',
+                '"trait_type": "', name, '",', 
+                '"value":', value,
+            '},'
+        );
+    }
+
+    function _makeNumberAttributeJson(string memory name, uint value) private pure returns (string memory) {
+        return string.concat(
+            '{',
+                '"trait_type": "', name, '",', 
+                '"value":', value.toString(),
+            '},'
+        );
+    }
+
+    function _makeBugAttributesJson(BugData storage bug, string memory rarity) private view returns (string memory) {
+        return string.concat(
+            '[',
+                _makeStringAttributeJson("Rarity", rarity),
+                _makeNumberAttributeJson("Intelligence", bug.attributes.intelligence),
+                _makeNumberAttributeJson("Nimbleness", bug.attributes.nimbleness),
+                _makeNumberAttributeJson("Strength", bug.attributes.strength),
+                _makeNumberAttributeJson("Endurance", bug.attributes.endurance),
+                _makeNumberAttributeJson("Charisma", bug.attributes.charisma),
+                _makeNumberAttributeJson("Talent", bug.attributes.talent),
+            ']'
+        );
     }
 
     function _authorizeUpgrade(address newImplementation)
