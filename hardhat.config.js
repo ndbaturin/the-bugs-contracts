@@ -44,7 +44,15 @@ task("set-all-data", "Catches a bug for you")
       {
         name: "Coperpillar",
         description: "Figths crime",
-        image: "ipfs://QmRTsj3pKswas1zeUqAtzCTn94vUECu78eVv2DNcaTKFjs"
+        image: "ipfs://QmRTsj3pKswas1zeUqAtzCTn94vUECu78eVv2DNcaTKFjs",
+        baseAttributes: {
+          intelligence: 3,
+          nimbleness: 2,
+          strength: 6,
+          endurance: 4,
+          charisma: 5,
+          talent: 5
+        }
       }
     );
     await setTx0.wait();
@@ -54,7 +62,15 @@ task("set-all-data", "Catches a bug for you")
       {
         name: "Waspassin",
         description: "Eliminates targets",
-        image: "ipfs://QmRvw9saBJnBdVFUjMUJEeU9aXGd74iue4YkP2aLHeaaQ2"
+        image: "ipfs://QmRvw9saBJnBdVFUjMUJEeU9aXGd74iue4YkP2aLHeaaQ2",
+        baseAttributes: {
+          intelligence: 6,
+          nimbleness: 4,
+          strength: 4,
+          endurance: 4,
+          charisma: 2,
+          talent: 5
+        }
       }
     );
     await setTx1.wait();
@@ -64,105 +80,113 @@ task("set-all-data", "Catches a bug for you")
       {
         name: "Fiddle Cricket",
         description: "Plays violin",
-        image: "ipfs://QmPkNKSaSriDSsFaz8eS5gzhepNMAgFiXtecR8Q5LcpfvN"
+        image: "ipfs://QmPkNKSaSriDSsFaz8eS5gzhepNMAgFiXtecR8Q5LcpfvN",
+        baseAttributes: {
+          intelligence: 5,
+          nimbleness: 3,
+          strength: 2,
+          endurance: 2,
+          charisma: 6,
+          talent: 7
+        }
       }
     );
     await setTx2.wait();
 
-    const setTx3 = await theBugs.setSpeciesData(
-      3,
-      {
-        name: "Soldant",
-        description: "Protects his anthill",
-        image: "ipfs://Qme6BUz9m8MpP1tuyrTYsPN2yx8wjauQfMfh68MeG2H9c4"
-      }
-    );
-    await setTx3.wait();
+    // const setTx3 = await theBugs.setSpeciesData(
+    //   3,
+    //   {
+    //     name: "Soldant",
+    //     description: "Protects his anthill",
+    //     image: "ipfs://Qme6BUz9m8MpP1tuyrTYsPN2yx8wjauQfMfh68MeG2H9c4"
+    //   }
+    // );
+    // await setTx3.wait();
 
-    const setTx4 = await theBugs.setSpeciesData(
-      4,
-      {
-        name: "Maffhopper",
-        description: "Does shady business",
-        image: "ipfs://QmU9tEWtAxaMRjeHP5h8pcA431psZP9N1c4mz2YsqfSWeM"
-      }
-    );
-    await setTx4.wait();
+    // const setTx4 = await theBugs.setSpeciesData(
+    //   4,
+    //   {
+    //     name: "Maffhopper",
+    //     description: "Does shady business",
+    //     image: "ipfs://QmU9tEWtAxaMRjeHP5h8pcA431psZP9N1c4mz2YsqfSWeM"
+    //   }
+    // );
+    // await setTx4.wait();
 
-    const setTx5 = await theBugs.setSpeciesData(
-      5,
-      {
-        name: "Thiefsquito",
-        description: "Changes items owner",
-        image: "ipfs://QmNhM2x2RrcP3ohXfVbj2jtrcqpaJ3P3naDcXJ3KhSnCap"
-      }
-    );
-    await setTx5.wait();
+    // const setTx5 = await theBugs.setSpeciesData(
+    //   5,
+    //   {
+    //     name: "Thiefsquito",
+    //     description: "Changes items owner",
+    //     image: "ipfs://QmNhM2x2RrcP3ohXfVbj2jtrcqpaJ3P3naDcXJ3KhSnCap"
+    //   }
+    // );
+    // await setTx5.wait();
 
-    const setTx6 = await theBugs.setSpeciesData(
-      6,
-      {
-        name: "Pharab",
-        description: "Bug of Egypt",
-        image: "ipfs://QmbbJLyQaUNmpSTpzYtv8G7jx1k1vZJjrE3Kbiy3ovkKSn"
-      }
-    );
-    await setTx6.wait();
+    // const setTx6 = await theBugs.setSpeciesData(
+    //   6,
+    //   {
+    //     name: "Pharab",
+    //     description: "The Bug of Egypt",
+    //     image: "ipfs://QmbbJLyQaUNmpSTpzYtv8G7jx1k1vZJjrE3Kbiy3ovkKSn"
+    //   }
+    // );
+    // await setTx6.wait();
 
-    const setTx7 = await theBugs.setSpeciesData(
-      7,
-      {
-        name: "Discofly",
-        description: "Shakes his disco ball",
-        image: "ipfs://QmTkmL49Vka86PcXah5be1c6PWFxJLgLKj63MVkaphLkfh"
-      }
-    );
-    await setTx7.wait();
+    // const setTx7 = await theBugs.setSpeciesData(
+    //   7,
+    //   {
+    //     name: "Discofly",
+    //     description: "Shakes his disco ball",
+    //     image: "ipfs://QmTkmL49Vka86PcXah5be1c6PWFxJLgLKj63MVkaphLkfh"
+    //   }
+    // );
+    // await setTx7.wait();
 
-    const setTx8 = await theBugs.setSpeciesData(
-      8,
-      {
-        name: "Lady Bug",
-        description: "Do not confuse with ladybug",
-        image: "ipfs://QmPpEHcvtPPMGNmbTM6XgXo84oRb4FgLt6WnazJAMQAW3H"
-      }
-    );
-    await setTx8.wait();
+    // const setTx8 = await theBugs.setSpeciesData(
+    //   8,
+    //   {
+    //     name: "Lady Bug",
+    //     description: "Do not confuse with ladybug",
+    //     image: "ipfs://QmPpEHcvtPPMGNmbTM6XgXo84oRb4FgLt6WnazJAMQAW3H"
+    //   }
+    // );
+    // await setTx8.wait();
 
-    const setTx9 = await theBugs.setSpeciesData(
-      9,
-      {
-        name: "Doctor Bug",
-        description: "Conducts evil experiments",
-        image: "ipfs://QmbnMpk9HVTtqYhwF3kL8odj4K5dSRaxdCeXrWTBWqbq13"
-      }
-    );
-    await setTx9.wait();
+    // const setTx9 = await theBugs.setSpeciesData(
+    //   9,
+    //   {
+    //     name: "Doctor Bug",
+    //     description: "Conducts evil experiments",
+    //     image: "ipfs://QmbnMpk9HVTtqYhwF3kL8odj4K5dSRaxdCeXrWTBWqbq13"
+    //   }
+    // );
+    // await setTx9.wait();
 
-    const setTx10 = await theBugs.setSpeciesData(
-      10,
-      {
-        name: "Rastabug",
-        description: "Has red eyes for some reason",
-        image: "ipfs://QmRMCW8LRTdWVVTTVm8Pc66Cj3s4mRuwsRBpRuEDLBvr6b"
-      }
-    );
-    await setTx10.wait();
+    // const setTx10 = await theBugs.setSpeciesData(
+    //   10,
+    //   {
+    //     name: "Rastabug",
+    //     description: "Has red eyes for some reason",
+    //     image: "ipfs://QmRMCW8LRTdWVVTTVm8Pc66Cj3s4mRuwsRBpRuEDLBvr6b"
+    //   }
+    // );
+    // await setTx10.wait();
 
-    const setTx11 = await theBugs.setSpeciesData(
-      11,
-      {
-        name: "Mothalhead",
-        description: "Has impressive vocals",
-        image: "ipfs://QmaGyeAkVKPTXaRnc4pow6rDPcJ1X9kD916qunfgB5Lgqc"
-      }
-    );
-    await setTx11.wait();
+    // const setTx11 = await theBugs.setSpeciesData(
+    //   11,
+    //   {
+    //     name: "Mothalhead",
+    //     description: "Has impressive vocals",
+    //     image: "ipfs://QmaGyeAkVKPTXaRnc4pow6rDPcJ1X9kD916qunfgB5Lgqc"
+    //   }
+    // );
+    // await setTx11.wait();
 
     console.log("All data has been set");
   });
 
-task("get-uri", "Catches a bug for you")
+task("get-uri", "Fetches bug URI")
   .addParam("theBugs", "The address of the bugs contract")
   .addParam("bugId", "The address of the bugs contract")
   .setAction(async (taskArgs) => {
@@ -180,6 +204,10 @@ task("get-uri", "Catches a bug for you")
 task("catch-full", "Catches a bug for you")
   .addParam("bugMinter", "The address of the bug minter contract")
   .setAction(async (taskArgs) => {
+    // hardhat only, not how you obtrain user address usually
+    const userAddress = (await ethers.getSigners())[0].address;
+    console.log(userAddress);
+
     const bugMinterAddress = taskArgs.bugMinter;
     const BugMinter = await ethers.getContractFactory("BugMinter");
     const bugMinter = BugMinter.attach(bugMinterAddress);
@@ -188,27 +216,84 @@ task("catch-full", "Catches a bug for you")
     const TheBugs = await ethers.getContractFactory("TheBugs");
     const theBugs = TheBugs.attach(theBugsAddress);
 
-    const initTx = await bugMinter.initiateCatch();
-    await initTx.wait();
-    
-    console.log("Catch initiated");
+    // calculate seconds before next catch is available
+    const secondsBeforeNextCatch =
+      await bugMinter.lastCatch(userAddress) +
+      await bugMinter.catchTimeout() -
+      ( BigInt(Date.now()) / 1000n )
 
-    let bugId;
-    theBugs.on("Transfer", (from, to, tokenId, listener) => {
-      console.log(listener)
-      bugId = tokenId;
+    // check if the catch is available for the wallet
+    if (secondsBeforeNextCatch > 0) {
+      console.log("Next catch is available in ", secondsBeforeNextCatch, " seconds");
+      return
+    }
+
+    // check if the user have funds for transaction fee
+    const userBalance = await ethers.provider.getBalance(userAddress); // hardhat only, not how you obtrain provider usually
+    if (userBalance == 0) {
+      console.log("No funds for fees");
+    }
+
+    // create catch initiated listener
+    let catchInitiated;
+    const catchInitiatedFilter = bugMinter.filters.CatchInitiated(userAddress, null);
+    bugMinter.once(catchInitiatedFilter, (eventPayload) => {
+      catchInitiated = true;
     });
 
-    const completeTx = await bugMinter.completeCatch();
+    // initiate catch
+    const initTx = await bugMinter.initiateCatch();
+    await initTx.wait();
+
+    console.log("Catch initiate transaction sent");
+
+    // wait for it to be confirmed on the blockchain
+    while (catchInitiated == null) {
+      await sleep(100);
+    }
+
+    console.log("Catch initiated");
+
+    // create bug minted listener
+    let bugId;
+    const mintToUserFilter = theBugs.filters.Transfer(ethers.ZeroAddress, userAddress, null);
+    theBugs.once(mintToUserFilter, (eventPayload) => {
+      console.log(eventPayload);
+      console.log(eventPayload.args.tokenId);
+      bugId = eventPayload.args.tokenId;
+    });
+    
+    // complete catch
+    const inputBugName = "Buggy" // use user input
+    const completeTx = await bugMinter.completeCatch(inputBugName);
     await completeTx.wait();
 
-    console.log("Catch completed");
+    console.log("Complete catch transaction sent");
 
+    // wait for it to be confirmed on the blockchain
     while (bugId == null) {
       await sleep(100);
     }
 
+    console.log("Catch completed");
     console.log("You catched bug #", bugId);
+
+    // get bug's metadata
+    const bugMetadataURI = await theBugs.tokenURI(bugId); // the URI will be "data:application/json;base64," data
+    console.log("Metadata URI - ", bugMetadataURI);
+  });
+
+task("upgrade", "Upgrades given contract")
+  .addParam("name", "The name of the contract to upgrade")
+  .addParam("address", "The address of the contract you want to upgrade")
+  .setAction(async (taskArgs) => {
+    await hre.run('compile');
+
+    const Contract = await ethers.getContractFactory(taskArgs.name);
+
+    await upgrades.upgradeProxy(taskArgs.address, Contract, {kind: 'uups'});
+
+    console.log(taskArgs.name, " has been upgraded!");
   });
 
 function sleep(ms) {
@@ -232,7 +317,7 @@ module.exports = {
     },
   },
   solidity: {
-    version: "0.8.26",
+    version: "0.8.28",
     settings: {
       optimizer: {
         enabled: true,
