@@ -38,16 +38,12 @@ contract BugMinter is
 
     function initiateCatch() external {
         address catcher = _msgSender();
-        uint prevrandomSeedBlock = randomSeedBlocks[catcher];
 
         require(lastCatch[catcher] + catchTimeout <= block.timestamp);
-        require(
-            prevrandomSeedBlock == 0 || blockhash(prevrandomSeedBlock) == 0,
-            "BugMinter: catch is already in the process"
-        );
 
         uint randomSeedBlock = block.number + 1;
         randomSeedBlocks[catcher] = randomSeedBlock;
+        lastCatch[catcher] = block.timestamp;
 
         emit CatchInitiated(catcher, randomSeedBlock);
     }
@@ -56,8 +52,9 @@ contract BugMinter is
         address catcher = _msgSender();
         bytes32 randomSeed = blockhash(randomSeedBlocks[catcher]);
 
+        require(randomSeed != 0, "BugMinter: catch expired");
+
         randomSeedBlocks[catcher] = 0;
-        lastCatch[catcher] = block.timestamp;
 
         uint tokenId = uint(keccak256(abi.encodePacked(randomSeed, catcher, address(this), address(theBugs))));
         theBugs.mint(catcher, tokenId, name);
