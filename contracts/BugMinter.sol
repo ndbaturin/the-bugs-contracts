@@ -21,7 +21,7 @@ contract BugMinter is
 
     TheBugs public theBugs;
 
-    event CatchInitiated(address catcher, uint randomSeedBlock);
+    event CatchInitiated(address indexed catcher, uint randomSeedBlock);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
