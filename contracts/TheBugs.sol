@@ -46,12 +46,13 @@ contract TheBugs is
     bytes32 public constant DATA_SETTER_ROLE = keccak256("DATA_SETTER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    uint public constant SPECIES_COUNT = 12;
-    uint private constant ATTRIBUTES_COUNT = 6;
+    uint public constant SPECIES_COUNT = 3; // TODO: change
 
     mapping(uint => SpeciesData) public speciesDatas;
     mapping(uint => BugData) public bugDatas;
 
+    uint private constant ATTRIBUTES_COUNT = 6;
+    uint private constant BASE_ATTRIBUTES_TOTAL = 25;
     uint private constant PRECISION = 10000;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -78,11 +79,20 @@ contract TheBugs is
         SpeciesData calldata speciesData
     ) external onlyRole(DATA_SETTER_ROLE) {
         require(speciesID < SPECIES_COUNT, "TheBugs: invalid spesies ID");
+        Attributes calldata baseAttributes = speciesData.baseAttributes;
+        require(
+            baseAttributes.intelligence + baseAttributes.nimbleness + baseAttributes.strength +
+                baseAttributes.endurance + baseAttributes.charisma + baseAttributes.talent ==
+                25,
+            "The Bugs: invalid base attributes total"
+        );
 
         speciesDatas[speciesID] = speciesData;
     }
 	
-	function tokenURI(uint256 tokenId) public view override returns (string memory) {
+	function tokenURI(uint256 tokenId) public view override returns (string memory) { 
+        // TODO: check if it exists?
+        
         SpeciesData memory species = getSpeciesData(tokenId);
         BugData storage bug = bugDatas[tokenId];
 
@@ -186,8 +196,8 @@ contract TheBugs is
         return string.concat(
             '{',
                 '"trait_type": "', name, '",', 
-                '"value":', value,
-            '},'
+                '"value": "', value, '"',
+            '}'
         );
     }
 
@@ -196,19 +206,19 @@ contract TheBugs is
             '{',
                 '"trait_type": "', name, '",', 
                 '"value":', value.toString(),
-            '},'
+            '}'
         );
     }
 
     function _makeBugAttributesJson(BugData storage bug, string memory rarity) private view returns (string memory) {
         return string.concat(
             '[',
-                _makeStringAttributeJson("Rarity", rarity),
-                _makeNumberAttributeJson("Intelligence", bug.attributes.intelligence),
-                _makeNumberAttributeJson("Nimbleness", bug.attributes.nimbleness),
-                _makeNumberAttributeJson("Strength", bug.attributes.strength),
-                _makeNumberAttributeJson("Endurance", bug.attributes.endurance),
-                _makeNumberAttributeJson("Charisma", bug.attributes.charisma),
+                _makeStringAttributeJson("Rarity", rarity), ",",
+                _makeNumberAttributeJson("Intelligence", bug.attributes.intelligence),",",
+                _makeNumberAttributeJson("Nimbleness", bug.attributes.nimbleness),",",
+                _makeNumberAttributeJson("Strength", bug.attributes.strength),",",
+                _makeNumberAttributeJson("Endurance", bug.attributes.endurance),",",
+                _makeNumberAttributeJson("Charisma", bug.attributes.charisma),",",
                 _makeNumberAttributeJson("Talent", bug.attributes.talent),
             ']'
         );
