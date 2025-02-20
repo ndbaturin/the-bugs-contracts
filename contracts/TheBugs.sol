@@ -44,12 +44,17 @@ contract TheBugs is
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DATA_SETTER_ROLE = keccak256("DATA_SETTER_ROLE");
+    bytes32 public constant COMPETITION_ROLE = keccak256("COMPETITION_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint public constant SPECIES_COUNT = 3; // TODO: change
 
     mapping(uint => SpeciesData) public speciesDatas;
     mapping(uint => BugData) public bugDatas;
+
+    mapping(uint => uint) public wins;
+    mapping(uint => uint) public losses;
+    mapping(uint => uint) public draws;
 
     uint private constant ATTRIBUTES_COUNT = 6;
     uint private constant BASE_ATTRIBUTES_TOTAL = 25;
@@ -89,10 +94,20 @@ contract TheBugs is
 
         speciesDatas[speciesID] = speciesData;
     }
+
+    function incrementWins(uint tokenId) external onlyRole(COMPETITION_ROLE) {
+        wins[tokenId]++;
+    }
+
+    function incrementLosses(uint tokenId) external onlyRole(COMPETITION_ROLE) {
+        losses[tokenId]++;
+    }
+
+    function incrementDraws(uint tokenId) external onlyRole(COMPETITION_ROLE) {
+        draws[tokenId]++;
+    }
 	
 	function tokenURI(uint256 tokenId) public view override returns (string memory) { 
-        // TODO: check if it exists?
-        
         SpeciesData memory species = getSpeciesData(tokenId);
         BugData storage bug = bugDatas[tokenId];
 
@@ -112,7 +127,7 @@ contract TheBugs is
                 '"species": "', species.name, '",',
                 '"description": "', description, '",',
                 '"image": "', species.image, '",',
-                '"attributes":', _makeBugAttributesJson(bug, rarity),
+                '"attributes":', _makeBugAttributesJson(bug, rarity, tokenId),
             '}'
         );
 
@@ -201,7 +216,7 @@ contract TheBugs is
         );
     }
 
-    function _makeNumberAttributeJson(string memory name, uint value) private pure returns (string memory) {
+    function _makeUintAttributeJson(string memory name, uint value) private pure returns (string memory) {
         return string.concat(
             '{',
                 '"trait_type": "', name, '",', 
@@ -210,16 +225,28 @@ contract TheBugs is
         );
     }
 
-    function _makeBugAttributesJson(BugData storage bug, string memory rarity) private view returns (string memory) {
+    function _makeNumberTypeAttributeJson(string memory name, uint value) private pure returns (string memory) {
+        return string.concat(
+            '{',
+                '"display_type": "number",',
+                '"trait_type": "', name, '",', 
+                '"value":', value.toString(),
+            '}'
+        );
+    }
+
+    function _makeBugAttributesJson(BugData storage bug, string memory rarity, uint tokenId) private view returns (string memory) {
         return string.concat(
             '[',
                 _makeStringAttributeJson("Rarity", rarity), ",",
-                _makeNumberAttributeJson("Intelligence", bug.attributes.intelligence),",",
-                _makeNumberAttributeJson("Nimbleness", bug.attributes.nimbleness),",",
-                _makeNumberAttributeJson("Strength", bug.attributes.strength),",",
-                _makeNumberAttributeJson("Endurance", bug.attributes.endurance),",",
-                _makeNumberAttributeJson("Charisma", bug.attributes.charisma),",",
-                _makeNumberAttributeJson("Talent", bug.attributes.talent),
+                _makeUintAttributeJson("Intelligence", bug.attributes.intelligence),",",
+                _makeUintAttributeJson("Nimbleness", bug.attributes.nimbleness),",",
+                _makeUintAttributeJson("Strength", bug.attributes.strength),",",
+                _makeUintAttributeJson("Endurance", bug.attributes.endurance),",",
+                _makeUintAttributeJson("Charisma", bug.attributes.charisma),",",
+                _makeUintAttributeJson("Talent", bug.attributes.talent),",",
+                _makeNumberTypeAttributeJson("Runs", wins[tokenId] + losses[tokenId] + draws[tokenId]),",",
+                _makeNumberTypeAttributeJson("Wins", wins[tokenId]),
             ']'
         );
     }
