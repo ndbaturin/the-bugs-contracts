@@ -14,7 +14,7 @@ contract BugMinter is
 {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    uint public constant catchTimeout = 1 days;
+    uint public constant catchTimeout = 1 minutes; // TODO: change for production
 
     mapping(address => uint) public randomSeedBlocks;
     mapping(address => uint) public lastCatch;
@@ -50,14 +50,16 @@ contract BugMinter is
 
     function completeCatch(string calldata name) external {
         address catcher = _msgSender();
-        bytes32 randomSeed = blockhash(randomSeedBlocks[catcher]);
 
+        uint tokenId = getCatchInProgressTokenId(catcher);
+        theBugs.mint(catcher, tokenId, name);
+    }
+
+    function getCatchInProgressTokenId(address catcher) view public returns (uint) {
+        bytes32 randomSeed = blockhash(randomSeedBlocks[catcher]);
         require(randomSeed != 0, "BugMinter: catch expired");
 
-        randomSeedBlocks[catcher] = 0;
-
-        uint tokenId = uint(keccak256(abi.encodePacked(randomSeed, catcher, address(this), address(theBugs))));
-        theBugs.mint(catcher, tokenId, name);
+        return uint(keccak256(abi.encodePacked(randomSeed, catcher, address(this), address(theBugs))));
     }
 
     function _authorizeUpgrade(address newImplementation)

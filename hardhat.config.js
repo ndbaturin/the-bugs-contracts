@@ -254,13 +254,27 @@ task("catch-full", "Catches a bug for you")
 
     console.log("Catch initiated");
 
-    // create bug minted listener
+    // wait until catched bug ID is available
     let bugId;
-    const mintToUserFilter = theBugs.filters.Transfer(ethers.ZeroAddress, userAddress, null);
-    theBugs.once(mintToUserFilter, (eventPayload) => {
-      console.log(eventPayload);
-      console.log(eventPayload.args.tokenId);
-      bugId = eventPayload.args.tokenId;
+    while (bugId == null) {
+      try {
+        bugId = await bugMinter.getCatchInProgressTokenId(userAddress);
+      } catch (e) {
+        await sleep(100);
+      }
+    }
+
+    console.log("You are catching bug #", bugId);
+
+    // get bug's metadata
+    let bugMetadataURI = await theBugs.tokenURI(bugId); // the URI will be "data:application/json;base64," data
+    console.log("Metadata URI - ", bugMetadataURI);
+
+    // create bug minted listener
+    let catchComleted;
+    const mintBugToUserFilter = theBugs.filters.Transfer(ethers.ZeroAddress, userAddress, bugId);
+    theBugs.once(mintBugToUserFilter, (eventPayload) => {
+      catchComleted = true;
     });
     
     // complete catch
@@ -271,7 +285,7 @@ task("catch-full", "Catches a bug for you")
     console.log("Complete catch transaction sent");
 
     // wait for it to be confirmed on the blockchain
-    while (bugId == null) {
+    while (catchComleted == null) {
       await sleep(100);
     }
 
@@ -279,17 +293,29 @@ task("catch-full", "Catches a bug for you")
     console.log("You catched bug #", bugId);
 
     // get bug's metadata
-    const bugMetadataURI = await theBugs.tokenURI(bugId); // the URI will be "data:application/json;base64," data
+    bugMetadataURI = await theBugs.tokenURI(bugId); // the URI will be "data:application/json;base64," data
     console.log("Metadata URI - ", bugMetadataURI);
   });
 
 task("upgrade", "Upgrades given contract")
   .addParam("name", "The name of the contract to upgrade")
   .addParam("address", "The address of the contract you want to upgrade")
+  .addOptionalParam("grantRole", "Set to true to grant UPGRADER_ROLE to a caller")
   .setAction(async (taskArgs) => {
     await hre.run('compile');
 
+    const callerAddress = (await ethers.getSigners())[0].address;
+
     const Contract = await ethers.getContractFactory(taskArgs.name);
+    const contract = Contract.attach(taskArgs.address);
+
+    if (taskArgs.grantRole != null) {
+      const UPGRADER_ROLE = hre.ethers.id("UPGRADER_ROLE");
+      const grantTx = await contract.grantRole(UPGRADER_ROLE, callerAddress);
+      await grantTx.wait();
+
+      console.log("UPGRADER_ROLE granted to caller");
+    }
 
     await upgrades.upgradeProxy(taskArgs.address, Contract, {kind: 'uups'});
 
