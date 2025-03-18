@@ -176,6 +176,20 @@ contract TheBugs is
         );
     }
 
+    function tokenURIsByOwnerAndIndexRange(
+        address owner,
+        uint fromIndex,
+        uint toIndex
+    ) public view returns(string[] memory) {
+        string[] memory uris = new string[](toIndex - fromIndex + 1);
+        for (uint i = fromIndex; i <= toIndex; i++) {
+            uint tokenId = tokenOfOwnerByIndex(owner, i);
+            uris[i - fromIndex] = tokenURI(tokenId);
+        }
+
+        return uris;
+    }
+
     function calculateRarity(uint tokenId) public pure returns (Rarity) {
         uint rarityPercentage = uint(keccak256(abi.encodePacked(tokenId, "RARITY"))) % PRECISION;
 
