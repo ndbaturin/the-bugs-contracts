@@ -322,6 +322,19 @@ task("upgrade", "Upgrades given contract")
     console.log(taskArgs.name, " has been upgraded!");
   });
 
+task("get-bug-uri", "Catches a bug for you")
+  .addParam("theBugs", "The address of the Bugs contract")
+  .addParam("id", "The ID of the bug")
+  .setAction(async (taskArgs) => {
+    const theBugsAddress = taskArgs.theBugs;
+    const TheBugs = await ethers.getContractFactory("TheBugs");
+    const theBugs = TheBugs.attach(theBugsAddress);
+
+    const bugId = taskArgs.id;
+    bugMetadataURI = await theBugs.tokenURI(bugId); // the URI will be "data:application/json;base64," data
+    console.log("Metadata URI - ", bugMetadataURI);
+  });
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
