@@ -27,7 +27,7 @@ contract BugMinter is
 
     TheBugs public theBugs;
     uint public lastCatchedBug;
-    address paymentReceiver;
+    address payable paymentReceiver;
 
     event CatchInitiated(address indexed catcher, uint randomSeedBlock, bool premium);
     event CatchCompleted(address indexed catcher, uint tokenId);
@@ -41,7 +41,7 @@ contract BugMinter is
         __UUPSUpgradeable_init();
 
         theBugs = TheBugs(theBugs_);
-        paymentReceiver = paymentReceiver_;
+        paymentReceiver = payable(paymentReceiver_);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -58,6 +58,7 @@ contract BugMinter is
         address catcher = _msgSender();
 
         require(msg.value == PREMIUM_CATCH_PRICE);
+        paymentReceiver.transfer(msg.value);
 
         _initiateCatch(catcher, true);
     }
