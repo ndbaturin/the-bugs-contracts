@@ -193,11 +193,18 @@ contract TheBugs is
     function calculateRarity(uint tokenId) public pure returns (Rarity) {
         uint rarityPercentage = uint(keccak256(abi.encodePacked(tokenId, "RARITY"))) % PRECISION;
 
-        if (rarityPercentage < 6000) return Rarity.COMMON;
-        if (rarityPercentage < 8500) return Rarity.UNCOMMON;
-        if (rarityPercentage < 9500) return Rarity.RARE;
-        if (rarityPercentage < 9850) return Rarity.EPIC;
-        return Rarity.LEGENDARY;
+        if (isPremium(tokenId)){
+            if (rarityPercentage < 5000) return Rarity.UNCOMMON;
+            if (rarityPercentage < 9000) return Rarity.RARE;
+            if (rarityPercentage < 9700) return Rarity.EPIC;
+            return Rarity.LEGENDARY;
+        } else {
+            if (rarityPercentage < 6000) return Rarity.COMMON;
+            if (rarityPercentage < 8500) return Rarity.UNCOMMON;
+            if (rarityPercentage < 9500) return Rarity.RARE;
+            if (rarityPercentage < 9850) return Rarity.EPIC;
+            return Rarity.LEGENDARY;
+        }
     }
 
     function rarityToString(Rarity rarity) public pure returns (string memory) {
@@ -207,6 +214,10 @@ contract TheBugs is
         if (rarity == Rarity.EPIC) return "Epic";
         if (rarity == Rarity.LEGENDARY) return "Legendary";
         revert("TheBugs: invalid rarity");
+    }
+
+    function isPremium(uint tokenId) public pure returns (bool) {
+        return tokenId >> 255 == 1;
     }
 
     function _initBugData(uint tokenId, string memory name) private {

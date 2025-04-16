@@ -12,40 +12,59 @@ contract BugMinter is
     AccessControlEnumerableUpgradeable,
     UUPSUpgradeable
 {
+    struct CatchInProgressData {
+        uint128 randomSeedBlock;
+        bool premium;
+    }
+
+    struct LastCatchData {
+        address catcher;
+        uint tokenId;
+    }
+
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
-    uint public constant catchTimeout = 1 minutes; // TODO: change for production
+    uint public constant CATCH_TIMEOUT = 1 minutes; // TODO: change for production
+    uint public constant PREMIUM_CATCH_PRICE = 0.001 ether; // TODO: change for production
 
-    mapping(address => uint) public randomSeedBlocks;
-    mapping(address => uint) public lastCatch;
+    mapping(address => CatchInProgressData) public catchesInProgress;
+    mapping(address => uint) public lastFreeCatchTimestamps;
 
     TheBugs public theBugs;
+    LastCatchData public lastCatch;
+    address paymentReceiver;
 
-    event CatchInitiated(address indexed catcher, uint randomSeedBlock);
+    event CatchInitiated(address indexed catcher, uint randomSeedBlock, bool premium);
+    event CatchCompleted(address indexed catcher, uint tokenId);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(address theBugs_) initializer public {
+    function initialize(address theBugs_, address paymentReceiver_) initializer public {
         __AccessControl_init();
         __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
 
         theBugs = TheBugs(theBugs_);
+        paymentReceiver = paymentReceiver_;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function initiateCatch() external {
+    function initiateFreeCatch() external {
         address catcher = _msgSender();
 
-        require(lastCatch[catcher] + catchTimeout <= block.timestamp);
+        require(lastFreeCatchTimestamps[catcher] + CATCH_TIMEOUT <= block.timestamp);
 
-        uint randomSeedBlock = block.number + 1;
-        randomSeedBlocks[catcher] = randomSeedBlock;
-        lastCatch[catcher] = block.timestamp;
+        _initiateCatch(catcher, false);
+    }
 
-        emit CatchInitiated(catcher, randomSeedBlock);
+    function initiatePremiumCatch() external payable {
+        address catcher = _msgSender();
+
+        require(msg.value == PREMIUM_CATCH_PRICE);
+
+        _initiateCatch(catcher, true);
     }
 
     function completeCatch(string calldata name) external {
@@ -53,13 +72,32 @@ contract BugMinter is
 
         uint tokenId = getCatchInProgressTokenId(catcher);
         theBugs.mint(catcher, tokenId, name);
+        delete catchesInProgress[catcher];
+
+        emit CatchCompleted(catcher, tokenId);
     }
 
     function getCatchInProgressTokenId(address catcher) view public returns (uint) {
-        bytes32 randomSeed = blockhash(randomSeedBlocks[catcher]);
+        CatchInProgressData storage catchInProgress = catchesInProgress[catcher];
+        bytes32 randomSeed = blockhash(catchInProgress.randomSeedBlock);
         require(randomSeed != 0, "BugMinter: catch expired");
 
-        return uint(keccak256(abi.encodePacked(randomSeed, catcher, address(this), address(theBugs))));
+        uint idPremiumFlag = catchInProgress.premium ? 1 : 0 << 255;
+        uint idRandom = uint(keccak256(abi.encodePacked(
+            randomSeed, catcher, address(this), address(theBugs)
+        ))) >> 1;
+
+        return idPremiumFlag + idRandom;
+    }
+
+    function _initiateCatch(address catcher, bool premium) private {
+        uint128 randomSeedBlock = uint128(block.number + 1);
+        catchesInProgress[catcher] = CatchInProgressData(randomSeedBlock, premium);
+        if (!premium) {
+            lastFreeCatchTimestamps[catcher] = block.timestamp;
+        }
+
+        emit CatchInitiated(catcher, randomSeedBlock, premium);
     }
 
     function _authorizeUpgrade(address newImplementation)
