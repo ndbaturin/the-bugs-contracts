@@ -17,11 +17,6 @@ contract BugMinter is
         bool premium;
     }
 
-    struct LastCatchData {
-        address catcher;
-        uint tokenId;
-    }
-
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     uint public constant CATCH_TIMEOUT = 1 minutes; // TODO: change for production
@@ -31,7 +26,7 @@ contract BugMinter is
     mapping(address => uint) public lastFreeCatchTimestamps;
 
     TheBugs public theBugs;
-    LastCatchData public lastCatch;
+    uint public lastCatchedBug;
     address paymentReceiver;
 
     event CatchInitiated(address indexed catcher, uint randomSeedBlock, bool premium);
@@ -74,7 +69,7 @@ contract BugMinter is
         theBugs.mint(catcher, tokenId, name);
         delete catchesInProgress[catcher];
 
-        lastCatch = LastCatchData(catcher, tokenId);
+        lastCatchedBug = tokenId;
 
         emit CatchCompleted(catcher, tokenId);
     }
