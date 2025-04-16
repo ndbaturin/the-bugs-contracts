@@ -74,6 +74,8 @@ contract BugMinter is
         theBugs.mint(catcher, tokenId, name);
         delete catchesInProgress[catcher];
 
+        lastCatch = LastCatchData(catcher, tokenId);
+
         emit CatchCompleted(catcher, tokenId);
     }
 
