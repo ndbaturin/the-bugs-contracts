@@ -21,7 +21,7 @@ contract TheBugs is
 
     enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 
-    struct Attributes {
+    struct Stats {
         uint8 intelligence;
         uint8 nimbleness;
         uint8 strength;
@@ -34,12 +34,12 @@ contract TheBugs is
         string name;
         string description;
         string image;
-        Attributes baseAttributes;
+        Stats baseStats;
     }
 
     struct BugData {
         string name;
-        Attributes attributes;
+        Stats stats;
     }
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -84,12 +84,12 @@ contract TheBugs is
         SpeciesData calldata speciesData
     ) external onlyRole(DATA_SETTER_ROLE) {
         require(speciesID < SPECIES_COUNT, "TheBugs: invalid spesies ID");
-        Attributes calldata baseAttributes = speciesData.baseAttributes;
+        Stats calldata baseStats = speciesData.baseStats;
         require(
-            baseAttributes.intelligence + baseAttributes.nimbleness + baseAttributes.strength +
-                baseAttributes.endurance + baseAttributes.charisma + baseAttributes.talent ==
+            baseStats.intelligence + baseStats.nimbleness + baseStats.strength +
+                baseStats.endurance + baseStats.charisma + baseStats.talent ==
                 25,
-            "The Bugs: invalid base attributes total"
+            "The Bugs: invalid base stats total"
         );
 
         speciesDatas[speciesID] = speciesData;
@@ -141,7 +141,7 @@ contract TheBugs is
         return speciesDatas[_getSpeciesId(tokenId)];
     }
 
-    function calculateAttributes(uint tokenId) public view returns(Attributes memory) {
+    function calculateStats(uint tokenId) public view returns(Stats memory) {
         Rarity rarity = calculateRarity(tokenId);
         
         uint additionalPoints;
@@ -158,21 +158,21 @@ contract TheBugs is
         }
 
         bytes32 random = keccak256(abi.encodePacked(tokenId, "ATTRIBUTES"));
-        uint8[] memory attributesIncrease = new uint8[](ATTRIBUTES_COUNT);
+        uint8[] memory statsIncrease = new uint8[](ATTRIBUTES_COUNT);
         for (uint i = 0; i < additionalPoints; i++) {
             uint attribute = uint(random) % ATTRIBUTES_COUNT;
-            attributesIncrease[attribute]++;
+            statsIncrease[attribute]++;
             random = keccak256(abi.encodePacked(random));
         }
 
-        Attributes memory baseAttributes = speciesDatas[_getSpeciesId(tokenId)].baseAttributes;
-        return Attributes(
-            baseAttributes.intelligence + attributesIncrease[0],
-            baseAttributes.nimbleness + attributesIncrease[1],
-            baseAttributes.strength + attributesIncrease[2],
-            baseAttributes.endurance + attributesIncrease[3],
-            baseAttributes.charisma + attributesIncrease[4],
-            baseAttributes.talent + attributesIncrease[5]
+        Stats memory baseStats = speciesDatas[_getSpeciesId(tokenId)].baseStats;
+        return Stats(
+            baseStats.intelligence + statsIncrease[0],
+            baseStats.nimbleness + statsIncrease[1],
+            baseStats.strength + statsIncrease[2],
+            baseStats.endurance + statsIncrease[3],
+            baseStats.charisma + statsIncrease[4],
+            baseStats.talent + statsIncrease[5]
         );
     }
 
@@ -221,15 +221,28 @@ contract TheBugs is
     }
 
     function _initBugData(uint tokenId, string memory name) private {
-        Attributes memory attributes = calculateAttributes(tokenId);
-        bugDatas[tokenId] = BugData(
-            name,
-            attributes
-        );
+        Stats memory stats = calculateStats(tokenId);
+        bugDatas[tokenId] = BugData(name, stats);
     }
 
     function _getSpeciesId(uint tokenId) private pure returns (uint) {
         return uint(keccak256(abi.encodePacked(tokenId, "SPECIES"))) % SPECIES_COUNT;
+    }
+
+    function _makeBoolAttributeJson(string memory name, bool value) private pure returns (string memory) {
+        string memory valueString;
+        if (value) {
+            valueString = "true";
+        } else {
+            valueString = "false";
+        }
+
+        return string.concat(
+            '{',
+                '"trait_type": "', name, '",', 
+                '"value": ', valueString,
+            '}'
+        );
     }
 
     function _makeStringAttributeJson(string memory name, string memory value) private pure returns (string memory) {
@@ -245,7 +258,7 @@ contract TheBugs is
         return string.concat(
             '{',
                 '"trait_type": "', name, '",', 
-                '"value":', value.toString(),
+                '"value": ', value.toString(),
             '}'
         );
     }
@@ -255,8 +268,19 @@ contract TheBugs is
             '{',
                 '"display_type": "number",',
                 '"trait_type": "', name, '",', 
-                '"value":', value.toString(),
+                '"value": ', value.toString(),
             '}'
+        );
+    }
+
+    function _makeBugStatsAttributesJson(Stats storage stats) private view returns (string memory) {
+        return string.concat(
+            _makeUintAttributeJson("Intelligence", stats.intelligence),",",
+            _makeUintAttributeJson("Nimbleness", stats.nimbleness),",",
+            _makeUintAttributeJson("Strength", stats.strength),",",
+            _makeUintAttributeJson("Endurance", stats.endurance),",",
+            _makeUintAttributeJson("Charisma", stats.charisma),",",
+            _makeUintAttributeJson("Talent", stats.talent)
         );
     }
 
@@ -264,14 +288,10 @@ contract TheBugs is
         return string.concat(
             '[',
                 _makeStringAttributeJson("Rarity", rarity), ",",
-                _makeUintAttributeJson("Intelligence", bug.attributes.intelligence),",",
-                _makeUintAttributeJson("Nimbleness", bug.attributes.nimbleness),",",
-                _makeUintAttributeJson("Strength", bug.attributes.strength),",",
-                _makeUintAttributeJson("Endurance", bug.attributes.endurance),",",
-                _makeUintAttributeJson("Charisma", bug.attributes.charisma),",",
-                _makeUintAttributeJson("Talent", bug.attributes.talent),",",
+                _makeBugStatsAttributesJson(bug.stats),",",
                 _makeNumberTypeAttributeJson("Runs", wins[tokenId] + losses[tokenId] + draws[tokenId]),",",
-                _makeNumberTypeAttributeJson("Wins", wins[tokenId]),
+                _makeNumberTypeAttributeJson("Wins", wins[tokenId]),",",
+                _makeBoolAttributeJson("Premium", isPremium(tokenId)),
             ']'
         );
     }
