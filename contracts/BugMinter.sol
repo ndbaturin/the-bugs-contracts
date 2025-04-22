@@ -80,7 +80,7 @@ contract BugMinter is
         bytes32 randomSeed = blockhash(catchInProgress.randomSeedBlock);
         require(randomSeed != 0, "BugMinter: catch expired");
 
-        uint idPremiumFlag = catchInProgress.premium ? 1 : 0 << 255;
+        uint idPremiumFlag = uint(catchInProgress.premium ? 1 : 0) << 255;
         uint idRandom = uint(keccak256(abi.encodePacked(
             randomSeed, catcher, address(this), address(theBugs)
         ))) >> 1;
