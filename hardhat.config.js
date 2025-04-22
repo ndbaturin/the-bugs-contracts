@@ -11,6 +11,8 @@ task("deploy-test", "Deploys TheBugs contracts for testing")
   .setAction(async (taskArgs) => {
     await hre.run('compile');
 
+    const msgSender = (await hre.ethers.getSigners())[0].address
+
     const TheBugs = await ethers.getContractFactory("TheBugs");
     const theBugs = await upgrades.deployProxy(TheBugs, []);
     await theBugs.waitForDeployment()
@@ -19,7 +21,7 @@ task("deploy-test", "Deploys TheBugs contracts for testing")
     console.log("TheBugs deployed to: ", theBugsAddress);
 
     const BugMinter = await ethers.getContractFactory("BugMinter");
-    const bugMinter = await upgrades.deployProxy(BugMinter, [theBugsAddress]);
+    const bugMinter = await upgrades.deployProxy(BugMinter, [theBugsAddress, msgSender]);
     await bugMinter.waitForDeployment()
     const bugMinterAddress = await bugMinter.getAddress();
 
@@ -45,7 +47,7 @@ task("set-all-data", "Catches a bug for you")
         name: "Coperpillar",
         description: "Figths crime",
         image: "ipfs://QmRTsj3pKswas1zeUqAtzCTn94vUECu78eVv2DNcaTKFjs",
-        baseAttributes: {
+        baseStats: {
           intelligence: 3,
           nimbleness: 2,
           strength: 6,
@@ -63,7 +65,7 @@ task("set-all-data", "Catches a bug for you")
         name: "Waspassin",
         description: "Eliminates targets",
         image: "ipfs://QmRvw9saBJnBdVFUjMUJEeU9aXGd74iue4YkP2aLHeaaQ2",
-        baseAttributes: {
+        baseStats: {
           intelligence: 6,
           nimbleness: 4,
           strength: 4,
@@ -81,7 +83,7 @@ task("set-all-data", "Catches a bug for you")
         name: "Fiddle Cricket",
         description: "Plays violin",
         image: "ipfs://QmPkNKSaSriDSsFaz8eS5gzhepNMAgFiXtecR8Q5LcpfvN",
-        baseAttributes: {
+        baseStats: {
           intelligence: 5,
           nimbleness: 3,
           strength: 2,
@@ -203,10 +205,10 @@ task("get-uri", "Fetches bug URI")
 
 task("catch-full", "Catches a bug for you")
   .addParam("bugMinter", "The address of the bug minter contract")
+  .addOptionalParam("premium", "Set to true to catch a premium bug")
   .setAction(async (taskArgs) => {
     // hardhat only, not how you obtrain user address usually
     const userAddress = (await ethers.getSigners())[0].address;
-    console.log(userAddress);
 
     const bugMinterAddress = taskArgs.bugMinter;
     const BugMinter = await ethers.getContractFactory("BugMinter");
@@ -218,8 +220,8 @@ task("catch-full", "Catches a bug for you")
 
     // calculate seconds before next catch is available
     const secondsBeforeNextCatch =
-      await bugMinter.lastCatch(userAddress) +
-      await bugMinter.catchTimeout() -
+      await bugMinter.lastFreeCatchTimestamps(userAddress) +
+      await bugMinter.CATCH_TIMEOUT() -
       ( BigInt(Date.now()) / 1000n )
 
     // check if the catch is available for the wallet
@@ -236,14 +238,23 @@ task("catch-full", "Catches a bug for you")
 
     // create catch initiated listener
     let catchInitiated;
-    const catchInitiatedFilter = bugMinter.filters.CatchInitiated(userAddress, null);
+    const catchInitiatedFilter = bugMinter.filters.CatchInitiated(userAddress, null, null);
     bugMinter.once(catchInitiatedFilter, (eventPayload) => {
       catchInitiated = true;
     });
 
     // initiate catch
-    const initTx = await bugMinter.initiateCatch();
-    await initTx.wait();
+    if (taskArgs.premium == "true") {
+      console.log("Initiating premium catch");
+
+      const initTx = await bugMinter.initiatePremiumCatch({value: ethers.parseEther("0.001")});
+      await initTx.wait();
+    } else {
+      console.log("Initiating free catch");
+
+      const initTx = await bugMinter.initiateFreeCatch();
+      await initTx.wait();
+    }
 
     console.log("Catch initiate transaction sent");
 
@@ -309,7 +320,7 @@ task("upgrade", "Upgrades given contract")
     const Contract = await ethers.getContractFactory(taskArgs.name);
     const contract = Contract.attach(taskArgs.address);
 
-    if (taskArgs.grantRole != null) {
+    if (taskArgs.grantRole == "true") {
       const UPGRADER_ROLE = hre.ethers.id("UPGRADER_ROLE");
       const grantTx = await contract.grantRole(UPGRADER_ROLE, callerAddress);
       await grantTx.wait();
@@ -322,7 +333,7 @@ task("upgrade", "Upgrades given contract")
     console.log(taskArgs.name, " has been upgraded!");
   });
 
-task("get-bug-uri", "Catches a bug for you")
+task("get-bug-uri", "Gets bug's URI")
   .addParam("theBugs", "The address of the Bugs contract")
   .addParam("id", "The ID of the bug")
   .setAction(async (taskArgs) => {
