@@ -273,7 +273,7 @@ contract TheBugs is
         );
     }
 
-    function _makeBugStatsAttributesJson(Stats storage stats) private view returns (string memory) {
+    function _makeBugStatsAttributesJson(Stats memory stats) private pure returns (string memory) {
         return string.concat(
             _makeUintAttributeJson("Intelligence", stats.intelligence),",",
             _makeUintAttributeJson("Nimbleness", stats.nimbleness),",",
@@ -285,10 +285,17 @@ contract TheBugs is
     }
 
     function _makeBugAttributesJson(BugData storage bug, string memory rarity, uint tokenId) private view returns (string memory) {
+        Stats memory stats;
+        if (stats.intelligence == 0) { // if any stat is zero, then the bug is not minted yet, calculate stats to show
+            stats = calculateStats(tokenId);
+        } else {
+            stats = bug.stats;
+        }
+
         return string.concat(
             '[',
                 _makeStringAttributeJson("Rarity", rarity), ",",
-                _makeBugStatsAttributesJson(bug.stats),",",
+                _makeBugStatsAttributesJson(stats),",",
                 _makeNumberTypeAttributeJson("Runs", wins[tokenId] + losses[tokenId] + draws[tokenId]),",",
                 _makeNumberTypeAttributeJson("Wins", wins[tokenId]),",",
                 _makeBoolAttributeJson("Premium", isPremium(tokenId)),
