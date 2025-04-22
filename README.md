@@ -5,6 +5,6 @@
 
 ## Current testnet deployment (Sepolia testnet)
 
-TheBugs - [0x041760838DaC2AC9013D26C9550daa519bd29bB9](https://sepolia.etherscan.io/address/0x041760838DaC2AC9013D26C9550daa519bd29bB9)
+TheBugs - [0xc17f073682F586E621044607f935C648eb1b7362](https://sepolia.etherscan.io/address/0xc17f073682F586E621044607f935C648eb1b7362)
 
-BugMinter - [0x5E34af69d7ceB07C8E3efE374F289AC761ac67d5](https://sepolia.etherscan.io/address/0x5E34af69d7ceB07C8E3efE374F289AC761ac67d5)
+BugMinter - [0xFd24af58bFA729109aF224fed0c8822300aCB972](https://sepolia.etherscan.io/address/0xFd24af58bFA729109aF224fed0c8822300aCB972)
